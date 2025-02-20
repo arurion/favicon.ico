@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>感覚過負荷ジェネレーター（音付き）</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.1s;
+        }
+        h1 {
+            color: #FFFFFF;
+            font-size: 50px;
+            text-shadow: 2px 2px 5px #000000;
+        }
+    </style>
+</head>
+<body>
+    <h1>耐えられるか？</h1>
+    <script>
+        // 視覚点滅
+        let isRed = true;
+        function flash() {
+            document.body.style.backgroundColor = isRed ? "#FF0000" : "#00FFFF";
+            isRed = !isRed;
+            setTimeout(flash, 100); // 10Hz
+        }
+        flash();
+
+        // 聴覚過負荷
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playNoise() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // ランダムな不協和音周波数（200Hz～2000Hz）
+            oscillator.frequency.value = Math.random() * 1800 + 200;
+            oscillator.type = "sawtooth"; // 鋸歯波で耳障りな音
+            gainNode.gain.value = 0.2; // 音量（0.0～1.0、大きすぎないよう調整）
+
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 100); // 100msで停止
+            setTimeout(playNoise, 100); // 次の音を即再生（10Hzで同期）
+        }
+        playNoise();
+    </script>
+</body>
+</html>
